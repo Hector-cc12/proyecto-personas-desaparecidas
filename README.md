@@ -1,6 +1,6 @@
 # Análisis Predictivo de Personas Desaparecidas (2017–2025)
 
-Proyecto de ingeniería de datos, machine learning y visualización para el análisis de casos de personas desaparecidas en Ecuador, basado en el dataset `mdi_personasdesaparecidas_pm_2017_2025.xlsx`.
+Proyecto de ingeniería de datos, machine learning y visualización para el análisis de casos de personas desaparecidas en Ecuador, basado en el dataset `personasdesaparecidas.csv`.
 
 El proyecto cubre el ciclo de vida completo del dato: desde el ETL inicial hasta una aplicación web de inferencia en tiempo real.
 

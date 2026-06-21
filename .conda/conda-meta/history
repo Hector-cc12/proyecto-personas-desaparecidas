@@ -23,3 +23,40 @@
 +defaults/win-64::zlib-1.3.2-h1c6eee0_0
 +defaults/win-64::zstd-1.5.7-h56299aa_0
 # update specs: ['python']
+==> 2026-06-21 16:07:39 <==
+# cmd: C:\miniconda\Scripts\conda-script.py install --yes --prefix c:\Users\HP\OneDrive\proyecto-personas-desaparecidas\.conda ipykernel
+# conda version: 25.5.0
++defaults/noarch::nest-asyncio-1.5.1-pyhd3eb1b0_0
++defaults/noarch::prompt_toolkit-3.0.52-hd3eb1b0_1
++defaults/win-64::asttokens-3.0.1-py314haa95532_0
++defaults/win-64::colorama-0.4.6-py314haa95532_0
++defaults/win-64::comm-0.2.3-py314haa95532_0
++defaults/win-64::debugpy-1.8.16-py314h885b0b7_1
++defaults/win-64::decorator-5.3.1-py314haa95532_0
++defaults/win-64::executing-2.2.1-py314haa95532_0
++defaults/win-64::ipykernel-7.2.0-py314h56ec5ee_0
++defaults/win-64::ipython-9.14.0-py314haa95532_0
++defaults/win-64::ipython_pygments_lexers-1.1.1-py314haa95532_0
++defaults/win-64::jedi-0.20.0-py314haa95532_0
++defaults/win-64::jupyter_client-8.9.1-py314haa95532_0
++defaults/win-64::jupyter_core-5.9.1-py314haa95532_0
++defaults/win-64::libsodium-1.0.21-h19b670b_0
++defaults/win-64::matplotlib-inline-0.2.1-py314haa95532_0
++defaults/win-64::packaging-26.0-py314haa95532_0
++defaults/win-64::parso-0.8.7-py314haa95532_0
++defaults/win-64::platformdirs-4.9.4-py314haa95532_0
++defaults/win-64::prompt-toolkit-3.0.52-py314haa95532_1
++defaults/win-64::psutil-7.0.0-py314h02ab6af_1
++defaults/win-64::pure_eval-0.2.3-py314haa95532_0
++defaults/win-64::pygments-2.20.0-py314haa95532_0
++defaults/win-64::python-dateutil-2.9.0post0-py314haa95532_2
++defaults/win-64::pywin32-311-py314h885b0b7_0
++defaults/win-64::pyzmq-27.1.0-py314h7149c55_1
++defaults/win-64::six-1.17.0-py314haa95532_0
++defaults/win-64::stack_data-0.6.3-py314haa95532_0
++defaults/win-64::tornado-6.5.5-py314h1c6eee0_0
++defaults/win-64::traitlets-5.15.0-py314haa95532_0
++defaults/win-64::typing_extensions-4.15.0-py314haa95532_0
++defaults/win-64::wcwidth-0.2.14-py314haa95532_0
++defaults/win-64::zeromq-4.3.5-h6a984cb_2
+# update specs: ['ipykernel']

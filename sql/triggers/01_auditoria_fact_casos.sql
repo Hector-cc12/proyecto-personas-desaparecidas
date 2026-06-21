@@ -1,54 +1,70 @@
-/* =====================================================================
-   FASE 2 - Paso 2.1: Implementación de la Auditoría Activa
-   Trigger sobre Fact_Casos que registra UPDATE/DELETE en Auditoria_Casos
-   ===================================================================== */
-
 USE DB_PersonasDesaparecidas;
 GO
 
-IF OBJECT_ID('dbo.Auditoria_Casos', 'U') IS NOT NULL DROP TABLE dbo.Auditoria_Casos;
-GO
-CREATE TABLE dbo.Auditoria_Casos (
-    id_auditoria    INT IDENTITY(1,1) PRIMARY KEY,
-    id_caso         INT NOT NULL,
-    tipo_operacion  VARCHAR(10) NOT NULL,   -- 'UPDATE' o 'DELETE'
-    usuario_db      VARCHAR(128) NOT NULL DEFAULT SUSER_NAME(),
-    fecha_evento    DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    datos_anteriores NVARCHAR(MAX) NULL     -- snapshot en JSON del registro afectado
-);
+-- ============================================================================
+-- 1. CREACIÓN DE LA TABLA DE AUDITORÍA (HISTÓRICO DE CAMBIOS)
+-- ============================================================================
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Log_Auditoria_Casos]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE Log_Auditoria_Casos (
+        id_log INT IDENTITY(1,1) NOT NULL,
+        id_caso_afectado INT NOT NULL,
+        accion_realizada VARCHAR(20) NOT NULL, -- 'UPDATE' o 'DELETE'
+        usuario_ejecutor VARCHAR(100) NOT NULL,
+        fecha_registro DATETIME DEFAULT GETDATE(),
+        situacion_anterior VARCHAR(50),
+        situacion_nueva VARCHAR(50),
+        CONSTRAINT PK_Log_Auditoria PRIMARY KEY CLUSTERED (id_log)
+    );
+END
 GO
 
-IF OBJECT_ID('dbo.trg_Auditoria_Fact_Casos', 'TR') IS NOT NULL
-    DROP TRIGGER dbo.trg_Auditoria_Fact_Casos;
-GO
-
-CREATE TRIGGER dbo.trg_Auditoria_Fact_Casos
-ON dbo.Fact_Casos
+-- ============================================================================
+-- 2. TRIGGER DE CONTROL E INTEGRIDAD SOBRE FACT_CASOS
+-- ============================================================================
+CREATE OR ALTER TRIGGER TR_Auditar_Cambios_Casos
+ON Fact_Casos
 AFTER UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Registrar UPDATE: guarda el estado ANTERIOR (deleted) del registro
-    IF EXISTS (SELECT 1 FROM inserted) AND EXISTS (SELECT 1 FROM deleted)
+    -- Variable para identificar la acción
+    DECLARE @accion VARCHAR(20);
+    
+    IF EXISTS(SELECT * FROM DELETED) AND EXISTS(SELECT * FROM INSERTED)
+        SET @accion = 'UPDATE';
+    ELSE
+        SET @accion = 'DELETE';
+
+    -- Si es un UPDATE, registramos el cambio de estado de la persona
+    IF @accion = 'UPDATE'
     BEGIN
-        INSERT INTO dbo.Auditoria_Casos (id_caso, tipo_operacion, datos_anteriores)
-        SELECT
-            d.id_caso,
+        INSERT INTO Log_Auditoria_Casos (id_caso_afectado, accion_realizada, usuario_ejecutor, situacion_anterior, situacion_nueva)
+        SELECT 
+            i.id_caso,
             'UPDATE',
-            (SELECT d.* FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)
-        FROM deleted d;
+            SYSTEM_USER,
+            d.situacion_actual,
+            i.situacion_actual
+        FROM INSERTED i
+        INNER JOIN DELETED d ON i.id_caso = d.id_caso;
     END
 
-    -- Registrar DELETE
-    IF EXISTS (SELECT 1 FROM deleted) AND NOT EXISTS (SELECT 1 FROM inserted)
+    -- Si es un DELETE, registramos la alerta de eliminación del caso crítico
+    IF @accion = 'DELETE'
     BEGIN
-        INSERT INTO dbo.Auditoria_Casos (id_caso, tipo_operacion, datos_anteriores)
-        SELECT
+        INSERT INTO Log_Auditoria_Casos (id_caso_afectado, accion_realizada, usuario_ejecutor, situacion_anterior, situacion_nueva)
+        SELECT 
             d.id_caso,
             'DELETE',
-            (SELECT d.* FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)
-        FROM deleted d;
+            SYSTEM_USER,
+            d.situacion_actual,
+            'REGISTRO ELIMINADO'
+        FROM DELETED d;
     END
 END;
+GO
+
+PRINT '¡Tabla de auditoría y Trigger preventivo desplegados con éxito!';
 GO

@@ -1,43 +1,37 @@
-/* =====================================================================
-   FASE 2 - Paso 2.2: Configuración de la Seguridad por Roles
-   Rol Analista: permisos exclusivos de lectura (SELECT)
-   Usado por los procesos de Machine Learning y Streamlit
-   ===================================================================== */
-
 USE DB_PersonasDesaparecidas;
 GO
 
--- 1) Crear el rol de base de datos
-IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'Analista')
+-- ============================================================================
+-- 1. CREACIÓN DE ROLES DE SEGURIDAD
+-- ============================================================================
+
+-- Rol para el equipo de Científicos de Datos (Acceso estricto de solo lectura)
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'DataScientistRole')
 BEGIN
-    CREATE ROLE Analista;
+    CREATE ROLE DataScientistRole;
 END
 GO
 
--- 2) Otorgar permisos de SOLO LECTURA sobre el esquema dbo
-GRANT SELECT ON SCHEMA::dbo TO Analista;
-GO
-
--- 3) Asegurarse explícitamente de que el rol NO puede escribir/borrar/modificar estructura
-DENY INSERT, UPDATE, DELETE, ALTER, CONTROL ON SCHEMA::dbo TO Analista;
-GO
-
-/* ---------------------------------------------------------------------
-   4) Crear login + usuario para el servicio (ML / Streamlit)
-   Reemplazar 'CAMBIAR_PASSWORD_SEGURA' por una contraseña real
-   gestionada vía variable de entorno / secreto, nunca en texto plano.
-   --------------------------------------------------------------------- */
-IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'svc_analista')
+-- Rol para Auditores de TI / Administradores de Datos (Lectura y revisión de logs)
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'DataAuditorRole')
 BEGIN
-    CREATE LOGIN svc_analista WITH PASSWORD = 'CAMBIAR_PASSWORD_SEGURA';
+    CREATE ROLE DataAuditorRole;
 END
 GO
 
-IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'svc_analista')
-BEGIN
-    CREATE USER svc_analista FOR LOGIN svc_analista;
-END
+-- ============================================================================
+-- 2. ASIGNACIÓN DE PERMISOS (GRANT)
+-- ============================================================================
+
+-- El Data Scientist solo necesita hacer SELECT para alimentar Jupyter/Python
+GRANT SELECT ON Fact_Casos TO DataScientistRole;
+GRANT SELECT ON Dim_Persona TO DataScientistRole;
+GRANT SELECT ON Dim_Geografia TO DataScientistRole;
+GRANT SELECT ON Dim_Motivo TO DataScientistRole;
+
+-- El Auditor puede ver los datos y además las futuras tablas de auditoría (logs)
+GRANT SELECT, VIEW DEFINITION TO DataAuditorRole;
 GO
 
-ALTER ROLE Analista ADD MEMBER svc_analista;
+PRINT '¡Roles de seguridad configurados con éxito!';
 GO
